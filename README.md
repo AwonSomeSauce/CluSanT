@@ -69,3 +69,8 @@ The `run_experiments.sh` script will:
 ## Contact
 
 For any questions or issues, please contact **Ahmed Musa** at `its.ahmed.musa@gmail.com`, **Alex Thomo** at `thomo@uvic.ca`, **Yun Lu** at `yunlu@uvic.ca`, or **Shera Potka** at `shera.potka@uvic.ca`.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
