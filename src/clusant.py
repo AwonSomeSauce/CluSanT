@@ -32,11 +32,9 @@ class CluSanT:
         self.cluster_path = (
             f"clusters/{embedding_file}_{num_clusters}_{metric_to_create_cluster}.json"
         )
-        self.centroids_path = (
-            f"centroids/{embedding_file}_{num_clusters}_{metric_to_create_cluster}.json"
-        )
+        self.centroids_path = f"centroids/{embedding_file}_{num_clusters}_{K}_{metric_to_create_cluster}.json"
         self.intra_cluster_path = f"intra/{embedding_file}_{num_clusters}_{metric_to_create_cluster}_{dp_type}.json"
-        self.inter_cluster_path = f"inter/{embedding_file}_{num_clusters}_{metric_to_create_cluster}_{dp_type}.json"
+        self.inter_cluster_path = f"inter/{embedding_file}_{num_clusters}_{K}_{metric_to_create_cluster}_{dp_type}.json"
         self.embeddings = embeddings
         self.clusters = self.load_clusters()
         self.inter_distances, self.inter_cluster_sensitivity = (
@@ -143,6 +141,10 @@ class CluSanT:
         )
 
     def calculate_intra_cluster_distances(self):
+        if self.dp_type == "standard":
+            # Return a dictionary with all values set to 1 if dp_type is 'standard'
+            return {label: 1 for label in self.clusters.keys()}
+
         if os.path.exists(self.intra_cluster_path):
             with open(self.intra_cluster_path, "r") as f:
                 data = json.load(f)
@@ -153,17 +155,14 @@ class CluSanT:
         for label, words in tqdm(
             self.clusters.items(), desc="Calculating intra-cluster distances"
         ):
-            if self.dp_type == "standard":
-                cluster_embeddings = [self.embeddings[word] for word in words]
-                if len(cluster_embeddings) > 1:
-                    distances = pdist(
-                        cluster_embeddings, metric=self.distance_metric_for_words
-                    )
-                    max_distance = max(distances)
-                else:
-                    max_distance = 0
+            cluster_embeddings = [self.embeddings[word] for word in words]
+            if len(cluster_embeddings) > 1:
+                distances = pdist(
+                    cluster_embeddings, metric=self.distance_metric_for_words
+                )
+                max_distance = max(distances)
             else:
-                max_distance = 1  # If not 'standard', set sensitivity to 1
+                max_distance = 0
             intra_cluster_sensitivity[label] = max_distance
 
         with open(self.intra_cluster_path, "w") as f:
@@ -210,6 +209,21 @@ class CluSanT:
             metric=self.distance_metric_for_words,
         ).flatten()
 
+        if self.dp_type == "metric":
+            # Normalize the distances to the range [0, 1]
+            min_dist = np.min(distances_from_word)
+            max_dist = np.max(distances_from_word)
+
+            if max_dist > min_dist:  # Avoid division by zero
+                distances_from_word = (distances_from_word - min_dist) / (
+                    max_dist - min_dist
+                )
+            else:
+                distances_from_word = np.zeros_like(
+                    distances_from_word
+                )  # All distances are the same
+
+        # Apply the exponential mechanism using the (possibly normalized) distances
         probabilities = self.exponential_mechanism(
             -np.array(distances_from_word),
             self.intra_cluster_sensitivity[selected_cluster_label],

@@ -50,4 +50,4 @@ pip install transformers torch pandas numpy tqdm spacy scikit-learn scipy nltk s
 
 # Run your python file
 # pip install --no-index -r requirements.txt
-python test.py
+python src/test.py

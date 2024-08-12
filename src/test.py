@@ -116,7 +116,7 @@ LOCS_AND_ORGS = [True]
 
 EPSILONS = [0.1, 0.5, 1, 2, 4, 8, 16]
 NUM_CLUSTERS = [1, 40, 180, 360, 720]
-KS = [1, 8, 16, 32, 64, 128, float("inf")]
+KS = [1, 8, 16, 32, 64, 128]
 
 # Uncomment the following line to use both "metric" and "standard" differential privacy types.
 # In metric DP, sensitivity = 1; in standard DP, sensitivity = maximum possible Euclidean distance between words/clusters.
