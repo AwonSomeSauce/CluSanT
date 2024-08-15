@@ -141,10 +141,6 @@ class CluSanT:
         )
 
     def calculate_intra_cluster_distances(self):
-        if self.dp_type == "standard":
-            # Return a dictionary with all values set to 1 if dp_type is 'standard'
-            return {label: 1 for label in self.clusters.keys()}
-
         if os.path.exists(self.intra_cluster_path):
             with open(self.intra_cluster_path, "r") as f:
                 data = json.load(f)
@@ -208,20 +204,6 @@ class CluSanT:
             word_embeddings_array,
             metric=self.distance_metric_for_words,
         ).flatten()
-
-        if self.dp_type == "metric":
-            # Normalize the distances to the range [0, 1]
-            min_dist = np.min(distances_from_word)
-            max_dist = np.max(distances_from_word)
-
-            if max_dist > min_dist:  # Avoid division by zero
-                distances_from_word = (distances_from_word - min_dist) / (
-                    max_dist - min_dist
-                )
-            else:
-                distances_from_word = np.zeros_like(
-                    distances_from_word
-                )  # All distances are the same
 
         # Apply the exponential mechanism using the (possibly normalized) distances
         probabilities = self.exponential_mechanism(
